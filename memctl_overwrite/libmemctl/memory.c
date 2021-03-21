@@ -56,14 +56,14 @@ select_fn(const char *io, memflags flags,
 		return false;							\
 	}
 
-bool
-read_kernel(kaddr_t address, size_t *size, void *data, memflags flags, size_t access) {
-	SELECT_FN(read);
-	return (read(address, size, data, access, NULL) == KERNEL_IO_SUCCESS);
-}
+// bool
+// read_kernel(kaddr_t address, size_t *size, void *data, memflags flags, size_t access) {
+// 	SELECT_FN(read);
+// 	return (read(address, size, data, access, NULL) == KERNEL_IO_SUCCESS);
+// }
 
-bool
-write_kernel(kaddr_t address, size_t *size, const void *data, memflags flags, size_t access) {
-	SELECT_FN(write);
-	return (write(address, size, data, access, NULL) == KERNEL_IO_SUCCESS);
-}
+// bool
+// write_kernel(kaddr_t address, size_t *size, const void *data, memflags flags, size_t access) {
+// 	SELECT_FN(write);
+// 	return (write(address, size, data, access, NULL) == KERNEL_IO_SUCCESS);
+// }

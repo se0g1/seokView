@@ -15,6 +15,10 @@
 #include "memCtlRead.h"
 #include "../libmemctl/format.h"
 #include "../libmemctl/memory.h"
+#include "../libmemctl/error.h"
+#include "../libmemctl/vmmap.h"
+#include "../libmemctl/find.h"
+#include "../kernel/kernel_memory.h"
 #include "../ktrr/ktrr_bypass_parameters.h"
 #include "../kernel/kernel_slide.h"
 #include "../system/platform.h"
@@ -102,6 +106,11 @@ make_memflags(bool force, bool physical) {
 #define HANDLER(name)							\
 	static bool name(const struct argument *_arguments)
 
+
+// Default values for argrange start and end values.
+kaddr_t range_default_virtual_start;
+kaddr_t range_default_virtual_end;
+
 static bool
 looks_like_physical_address(paddr_t address) {
 #if KERNEL_BITS == 32
@@ -167,6 +176,12 @@ uint64_t kvtophys(uint64_t kvaddr) {
   return paddr;
 }
 */
+
+
+bool
+write_kernel(kaddr_t address, size_t *size, const void *data, memflags flags, size_t access) {
+	return kernel_write(address, &data, sizeof(data));
+}
 
 static uint64_t
 kvtophys(kaddr_t kvaddr) {
@@ -255,8 +270,87 @@ HANDLER(r_handler) {
 	if(checkSafe){
 		return r_command(address, length, force, physical, width, access, dump);
 	}
+
 	return false;
 }
+
+HANDLER(rb_handler) {
+	bool force      = OPT_PRESENT(0, "f");
+	bool physical   = OPT_PRESENT(1, "p");
+	size_t access   = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(3, "address");
+	size_t length   = ARG_GET_UINT(4, "length");
+
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return rb_command(address, length, force, physical, access);
+	}
+	
+	return false;
+	
+}
+
+HANDLER(rs_handler) {
+	bool force      = OPT_PRESENT(0, "f");
+	bool physical   = OPT_PRESENT(1, "p");
+	size_t access   = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(3, "address");
+	size_t length   = ARG_GET_UINT_OR(4, "length", -1);
+	
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return rs_command(address, length, force, physical, access);
+	}
+	
+	return false;
+}
+
+HANDLER(w_handler) {
+	size_t width    = OPT_GET_WIDTH_OR(0, "", "width", sizeof(kword_t));
+	bool force      = OPT_PRESENT(1, "f");
+	bool physical   = OPT_PRESENT(2, "p");
+	size_t access   = OPT_GET_WIDTH_OR(3, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(4, "address");
+	kword_t value   = ARG_GET_UINT(5, "value");
+	
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return w_command(address, value, force, physical, width, access);
+	}
+	
+	return false;
+}
+
+HANDLER(wd_handler) {
+	bool force          = OPT_PRESENT(0, "f");
+	bool physical       = OPT_PRESENT(1, "p");
+	size_t access       = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address     = ARG_GET_ADDRESS(3, "address");
+	struct argdata data = ARG_GET_DATA(4, "data");
+
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return wd_command(address, data.data, data.length, force, physical, access);
+	}
+	
+	return false;
+}
+
+HANDLER(ws_handler) {
+	bool force         = OPT_PRESENT(0, "f");
+	bool physical      = OPT_PRESENT(1, "p");
+	size_t access      = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address    = ARG_GET_ADDRESS(3, "address");
+	const char *string = ARG_GET_STRING(4, "string");
+	
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return ws_command(address, string, force, physical, access);
+	}
+	
+	return false;
+}
+
 
 bool
 default_action(void) {
@@ -315,8 +409,6 @@ bool i_command() {
 }
 
 
-
-
 bool r_command(kaddr_t address, size_t length, bool force, bool physical, size_t width, size_t access,
 		bool dump) {
 	//bool checkSafe = safeacess(address);
@@ -329,6 +421,47 @@ bool r_command(kaddr_t address, size_t length, bool force, bool physical, size_t
 	} else {
 		return memctl_read(address, length, flags, width, access);
 	}
+}
+
+bool
+rb_command(kaddr_t address, size_t length, bool force, bool physical, size_t access) {
+	if (!force && !check_address(address, length, physical)) {
+		return false;
+	}
+	memflags flags = make_memflags(force, physical);
+	return memctl_dump_binary(address, length, flags, access);
+}
+
+bool
+rs_command(kaddr_t address, size_t length, bool force, bool physical, size_t access) {
+	// If the user didn't specify a length, then length is -1, which will result in an overflow
+	// error. Instead we check for one page of validity.
+	if (!force && !check_address(address, page_size, physical)) {
+		return false;
+	}
+	memflags flags = make_memflags(force, physical);
+	return memctl_read_string(address, length, flags, access);
+}
+
+bool
+w_command(kaddr_t address, kword_t value, bool force, bool physical, size_t width, size_t access) {
+	return wd_command(address, &value, width, force, physical, access);
+}
+
+bool
+wd_command(kaddr_t address, const void *data, size_t length, bool force, bool physical,
+		size_t access) {
+	if (!force && !check_address(address, length, physical)) {
+		return false;
+	}
+	memflags flags = make_memflags(force, physical);
+	return write_kernel(address, &length, data, flags, access);
+}
+
+bool
+ws_command(kaddr_t address, const char *string, bool force, bool physical, size_t access) {
+	size_t length = strlen(string) + 1;
+	return wd_command(address, string, length, force, physical, access);
 }
 
 // Command Code 
@@ -355,7 +488,64 @@ static struct command commands[] = {
 			{ ARGUMENT, "address", ARG_ADDRESS, "The address to read"             },
 			{ OPTIONAL, "length",  ARG_UINT,    "The number of bytes to read"     },
 		},
-	}
+	}, {
+		"rb", "r", rb_handler,
+		"Print raw binary data from memory",
+		"Read data from kernel virtual or physical memory and write the binary data "
+		"directly to stdout.",
+		ARGSPEC(5) {
+			{ "f",      NULL,      ARG_NONE,    "Force read (unsafe)"         },
+			{ "p",      NULL,      ARG_NONE,    "Read physical memory"        },
+			{ "x",      "access",  ARG_WIDTH,   "The memory access width"     },
+			{ ARGUMENT, "address", ARG_ADDRESS, "The address to read"         },
+			{ ARGUMENT, "length",  ARG_UINT,    "The number of bytes to read" },
+		},
+	}, {
+		"rs", "r", rs_handler,
+		"Read a string from memory",
+		"Read and print an ASCII string from kernel memory.",
+		ARGSPEC(5) {
+			{ "f",      NULL,      ARG_NONE,    "Force read (unsafe)"       },
+			{ "p",      NULL,      ARG_NONE,    "Read physical memory"      },
+			{ "x",      "access",  ARG_WIDTH,   "The memory access width"   },
+			{ ARGUMENT, "address", ARG_ADDRESS, "The address to read"       },
+			{ OPTIONAL, "length",  ARG_UINT,    "The maximum string length" },
+		},
+	}, {
+		"w", NULL, w_handler,
+		"Write an integer to memory",
+		"Write an integer to kernel virtual or physical memory.",
+		ARGSPEC(6) {
+			{ "",       "width",   ARG_WIDTH,   "The width of the value"  },
+			{ "f",      NULL,      ARG_NONE,    "Force write (unsafe)"    },
+			{ "p",      NULL,      ARG_NONE,    "Write physical memory"   },
+			{ "x",      "access",  ARG_WIDTH,   "The memory access width" },
+			{ ARGUMENT, "address", ARG_ADDRESS, "The address to write"    },
+			{ ARGUMENT, "value",   ARG_UINT,    "The value to write"      },
+		}, 
+	}, {
+		"wd", "w", wd_handler,
+		"Write arbitrary data to memory",
+		"Write data (specified as a hexadecimal string) to kernel memory.",
+		ARGSPEC(5) {
+			{ "f",      NULL,      ARG_NONE,    "Force write (unsafe)"    },
+			{ "p",      NULL,      ARG_NONE,    "Write physical memory"   },
+			{ "x",      "access",  ARG_WIDTH,   "The memory access width" },
+			{ ARGUMENT, "address", ARG_ADDRESS, "The address to write"    },
+			{ ARGUMENT, "data",    ARG_DATA,    "The data to write"       },
+		},
+	}, {
+		"ws", "w", ws_handler,
+		"Write a string to memory",
+		"Write a NULL-terminated ASCII string to kernel memory.",
+		ARGSPEC(5) {
+			{ "f",      NULL,      ARG_NONE,    "Force write (unsafe)"    },
+			{ "p",      NULL,      ARG_NONE,    "Write physical memory"   },
+			{ "x",      "access",  ARG_WIDTH,   "The memory access width" },
+			{ ARGUMENT, "address", ARG_ADDRESS, "The address to write"    },
+			{ ARGUMENT, "string",  ARG_STRING,  "The string to write"     },
+		},
+	}, 
 };
 
 struct cli cli = {

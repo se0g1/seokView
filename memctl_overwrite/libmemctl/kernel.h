@@ -1,3 +1,5 @@
+#ifndef MEMCTL__KERNEL_H_
+#define MEMCTL__KERNEL_H_
 /*
  * Kernel and kernel extension routines.
  *
@@ -12,6 +14,8 @@
 #include "macho.h"
 #include "memctl_types.h"
 #include "symbol_table.h"
+
+#include <CoreFoundation/CoreFoundation.h>
 
 /*
  * KERNEL_ID
@@ -70,7 +74,7 @@ extern struct kext kernel;
  * Description:
  * 	The kernelcache. Only available on platforms with a kernelcache.
  */
-extern struct kernelcache kernelcache;
+//extern struct kernelcache kernelcache;
 #endif
 
 /*
@@ -282,6 +286,8 @@ kext_result kext_search_data(const struct kext *kext, const void *data, size_t s
  * 	parameter will be the size of the first segment (before the split) rather than the true
  * 	binary size.
  */
+typedef bool (*kext_for_each_callback_fn)(void *context, CFDictionaryRef info,
+		const char *bundle_id, kaddr_t base, size_t size);
 
 /*
  * kext_for_each
@@ -300,6 +306,7 @@ kext_result kext_search_data(const struct kext *kext, const void *data, size_t s
  * Dependencies:
  * 	kernel_slide
  */
+bool kext_for_each(kext_for_each_callback_fn callback, void *context);
 
 /*
  * kext_containing_address
@@ -320,7 +327,7 @@ kext_result kext_search_data(const struct kext *kext, const void *data, size_t s
  * Dependencies:
  * 	kernel_slide
  */
-kext_result kext_containing_address(kaddr_t address, char **bundle_id);
+//kext_result kext_containing_address(kaddr_t address, char **bundle_id);
 
 // ---- Convenience functions ---------------------------------------------------------------------
 
@@ -458,3 +465,5 @@ kext_result kernel_and_kexts_search_data(const void *data, size_t size, int minp
  */
 kext_result resolve_symbol(const char *bundle_id, const char *symbol,
 		kaddr_t *address, size_t *size);
+
+#endif

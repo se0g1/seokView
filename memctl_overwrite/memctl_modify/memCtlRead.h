@@ -117,8 +117,6 @@ uint32_t read32(kaddr_t addr);
 void *read_bytes_with_size(kaddr_t addr, vm_size_t rsize);
 size_t write_bytes_with_size(uint64_t addr, const void *buf, size_t wsize);
 
-bool memctl_dump(uint64_t address, size_t size, memflags flags, size_t width, size_t access);
-
 uint64_t kmem_alloc(vm_size_t size);
 void write64(uint64_t address,uint64_t value);
 void write32(uint64_t address,uint32_t value);

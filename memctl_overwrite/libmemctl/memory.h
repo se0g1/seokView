@@ -44,7 +44,8 @@ extern bool safe_memory;
  * Returns:
  * 	True if no errors were encountered.
  */
-uint64_t read_kernel(uint64_t address, size_t *size, void *data, memflags flags, size_t access);
+// bool read_kernel(kaddr_t address, size_t *size, const void *data, memflags flags, size_t access);
+//uint64_t read_kernel(uint64_t address, size_t *size, void *data, memflags flags, size_t access);
 
 /*
  * write_kernel
@@ -64,5 +65,6 @@ uint64_t read_kernel(uint64_t address, size_t *size, void *data, memflags flags,
  * 	True if no errors were encountered.
  */
 bool write_kernel(kaddr_t address, size_t *size, const void *data, memflags flags, size_t access);
+//uint64_t write_kernel(kaddr_t address, size_t *size, const void *data, memflags flags, size_t access);
 
 #endif

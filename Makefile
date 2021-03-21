@@ -44,9 +44,10 @@ SOURCES = kernel/kernel_memory.c \
 	  memctl_overwrite/libmemctl/memctl_error.c \
 	  memctl_overwrite/libmemctl/error.c \
 	  memctl_overwrite/libmemctl/format.c \
-	  memctl_overwrite/memctl_modify/memCtlCommand.c \
+  	  memctl_overwrite/memctl_modify/memCtlCommand.c \
 	  memctl_overwrite/memctl_modify/memCtlRead.c \
-	  main.c
+  	  main.c
+ 
 
 HEADERS = headers/IOKitLib.h \
 	  headers/mach_vm.h \
@@ -68,6 +69,12 @@ HEADERS = headers/IOKitLib.h \
 	  system/platform.h \
 	  system/platform_match.h \
 	  memctl_overwrite/histedit.h \
+	  memctl_overwrite/libmemctl/vmmap.h \
+	  memctl_overwrite/libmemctl/find.h \
+	  memctl_overwrite/libmemctl/kernel_memory.h \
+	  memctl_overwrite/libmemctl/kernel_call.h \
+	  
+
 
 $(TARGET): $(SOURCES) $(HEADERS)
 	$(CC) $(CFLAGS) $(DEFINES) $(LDFLAGS) -o $@ $(SOURCES)

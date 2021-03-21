@@ -5,6 +5,15 @@
 
 bool i_command(void);
 bool r_command(uint64_t address, size_t length, bool force, bool physical, size_t width, size_t access, bool dump);
+bool w_command(kaddr_t address, kword_t value, bool force, bool physical, size_t width,
+		size_t access);
+bool wd_command(kaddr_t address, const void *data, size_t length, bool force, bool physical,
+		size_t access);
+bool rb_command(kaddr_t address, size_t length, bool force, bool physical, size_t access);
+bool rs_command(kaddr_t address, size_t length, bool force, bool physical, size_t access);
+bool ws_command(kaddr_t address, const char *string, bool force, bool physical, size_t access);
+bool f_command(kaddr_t start, kaddr_t end, kword_t value, size_t width, bool physical, bool heap,
+		size_t access, size_t alignment);
 
 bool default_action(void);
 

@@ -22,13 +22,11 @@ kaddr_t read_kernel(kaddr_t address, size_t *size, void *data, memflags flags,
   if (!ok) {
     return -1;
   }
-
   return value;
 }
 
 bool memctl_dump(kaddr_t address, size_t size, memflags flags, size_t width,
                  size_t access) {
-                   printf("[+] memctl_dump \n");
   assert(ispow2(width) && 0 < width && width <= sizeof(kword_t));
   assert(ispow2(access) && access <= sizeof(kword_t));
   uint8_t data[page_size];
@@ -150,4 +148,60 @@ bool memctl_read(kaddr_t address, size_t size, memflags flags, size_t width,
     size -= readsize;
   }
   return true;
+}
+
+bool
+memctl_dump_binary(kaddr_t address, size_t size, memflags flags, size_t access) {
+  assert(ispow2(access) && access <= sizeof(kword_t));
+  uint8_t data[page_size];
+  while (size > 0) {
+    size_t readsize = min(size, sizeof(data));
+    bool read_success = read_kernel(address, &readsize, data, flags, access);
+    uint8_t *p = data;
+    size_t left = readsize;
+    while (left > 0) {
+      if (interrupted) {
+        error_interrupt();
+        return false;
+      }
+      size_t written = fwrite(p, 1, left, stdout);
+      if (ferror(stdout)) {
+        error_internal("could not write to stdout");
+        return false;
+      }
+      p += written;
+      left -= written;
+    }
+    if (!read_success) {
+      return false;
+    }
+    size -= readsize;
+  }
+  return true;
+}
+
+
+bool
+memctl_read_string(kaddr_t address, size_t size, memflags flags, size_t access) {
+  assert(ispow2(access) && access <= sizeof(kword_t));
+  uint8_t data[page_size + 1];
+  bool have_printed = false;
+  bool read_success = true;
+  bool end = false;
+  while (!end) {
+    size_t readsize = min(size, sizeof(data) - 1);
+    read_success = read_kernel(address, &readsize, data, flags, access);
+    if (interrupted) {
+      error_interrupt();
+      return false;
+    }
+    data[readsize] = 0;
+    size_t len = strlen((char *)data);
+    size -= readsize;
+    address += readsize;
+    end = (len < readsize || size == 0 || !read_success);
+    printf("%s%s", (char *)data, (end && (have_printed || len > 0) ? "\n" : ""));
+    have_printed = true;
+  }
+  return read_success;
 }
