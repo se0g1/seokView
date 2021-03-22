@@ -80,9 +80,8 @@ fffffff00b734000:  0100000cfeedfacf 00000ed800000016
 
 ---
 [ 추후수정 ]  
-0. 문제점 : read / write 세부 기능 추가 필요 -> rd 기능이나 read length 추가 / write 입력 기 수정 
 1. 문제점 : kernel_symbols 폴더(symbole 파일)와 바이너리를 함께 업로드  
- 해결법 : 전역 주소로 코드 선언해서 불러오게 끔 수정 필요 
-2. 문제점 : /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.2.sdk/usr/include/mach/mach_vm.h 코드내부에서 주석 처리함 -> #error mach_vm.h unsupported. 
-3. 문제점 : write 이후에 f기능 추가를 위해서는 kernel.c 등 많은 함수들을 추가해야함, 
-필요한 코드를 추가하는 식으로 진행해야하지만, write 코드 추가 이후 파일 붙어넣기로 인해 코드 중보해결이 필요, ( memctl / ktrw 비교하면서 수정 -> memctl 기능들을 참고가 대부분  )
+ 해결법 : 전역 주소로 코드 선언해서 불러오게 끔 수정 필요  
+2. 문제점 : write 이후에 f기능 추가를 위해서는 kernel.c 등 많은 함수들을 추가해야함, 
+필요한 코드를 추가하는 식으로 진행해야하지만, write 코드 추가 이후 파일 붙어넣기로 인해 코드 중복 해결이 필요, ( memctl / ktrw 비교하면서 수정 -> memctl 기능들을 참고가 대부분  )  
+3. 문제점 : read / write 세부 기능 추가 필요 -> rd 기능이나 read length 추가 / write 입력 부분 수정
