@@ -39,8 +39,13 @@ seokView는 iOS introsepction tool로 정적 분석 도구로, iOS 13까지 tfp0
 0. Function
 ```
 se0g1> ?
-i                     Print system information
-r <address> [length]  Read and print formatted memory
+i                      Print system information
+r <address> [length]   Read and print formatted memory
+rb <address> <length>  Print raw binary data from memory
+rs <address> [length]  Read a string from memory
+w <address> <value>    Write an integer to memory
+wd <address> <data>    Write arbitrary data to memory
+ws <address> <string>  Write a string to memory
 ```
 
 1. System Information
@@ -68,10 +73,14 @@ se0g1> r 0xfffffff00b734000 16
 fffffff00b734000:  0100000cfeedfacf 00000ed800000016
 ```
 
+3. Kernel Memory Write
+```
 
+```
 
 ---
 [ 추후수정 ]  
+0. 문제점 : read / write 세부 기능 추가 필요 -> rd 기능이나 read length 추가 / write 입력 기 수정 
 1. 문제점 : kernel_symbols 폴더(symbole 파일)와 바이너리를 함께 업로드  
  해결법 : 전역 주소로 코드 선언해서 불러오게 끔 수정 필요 
 2. 문제점 : /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS13.2.sdk/usr/include/mach/mach_vm.h 코드내부에서 주석 처리함 -> #error mach_vm.h unsupported. 

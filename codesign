@@ -1,0 +1,3 @@
+./jtool --sign --ent ktrw_kext_loader.entitlements ./seokView
+mv out.bin seokView
+scp -P 2222 seokView root@localhost:/var/root/ktrw
