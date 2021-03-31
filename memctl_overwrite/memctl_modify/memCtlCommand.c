@@ -22,6 +22,7 @@
 #include "../ktrr/ktrr_bypass_parameters.h"
 #include "../kernel/kernel_slide.h"
 #include "../system/platform.h"
+#include "memCtlZoneCommand.h"
 
 
 static memflags
@@ -220,7 +221,6 @@ bool safeacess(kaddr_t address){
 	if(phyAddress){
 		return true;
 	}
-	
 	return false;
 }
 
@@ -243,117 +243,6 @@ check_address(kaddr_t address, size_t length, bool physical) {
 			return false;
 		}
 	}
-	return true;
-}
-
-
-HANDLER(i_handler) {
-	return i_command();
-}
-
-HANDLER(r_handler) {	
-	size_t width    = OPT_GET_WIDTH_OR(0, "", "width", sizeof(kword_t));
-	bool dump       = OPT_PRESENT(1, "d");
-	bool force      = OPT_PRESENT(2, "f");
-	bool physical   = OPT_PRESENT(3, "p");
-	size_t access   = OPT_GET_WIDTH_OR(4, "x", "access", 0);
-	kaddr_t address = ARG_GET_ADDRESS(5, "address");
-	size_t length;
-	if (ARG_PRESENT(6, "length")) {
-		length = ARG_GET_UINT(6, "length");
-	} else if (dump) {
-		length = 256;
-	} else {
-		length = width;
-	}
-	bool checkSafe = safeacess(address);
-	if(checkSafe){
-		return r_command(address, length, force, physical, width, access, dump);
-	}
-
-	return false;
-}
-
-HANDLER(rb_handler) {
-	bool force      = OPT_PRESENT(0, "f");
-	bool physical   = OPT_PRESENT(1, "p");
-	size_t access   = OPT_GET_WIDTH_OR(2, "x", "access", 0);
-	kaddr_t address = ARG_GET_ADDRESS(3, "address");
-	size_t length   = ARG_GET_UINT(4, "length");
-
-	bool checkSafe = safeacess(address);
-	if(checkSafe){
-		return rb_command(address, length, force, physical, access);
-	}
-	
-	return false;
-	
-}
-
-HANDLER(rs_handler) {
-	bool force      = OPT_PRESENT(0, "f");
-	bool physical   = OPT_PRESENT(1, "p");
-	size_t access   = OPT_GET_WIDTH_OR(2, "x", "access", 0);
-	kaddr_t address = ARG_GET_ADDRESS(3, "address");
-	size_t length   = ARG_GET_UINT_OR(4, "length", -1);
-	
-	bool checkSafe = safeacess(address);
-	if(checkSafe){
-		return rs_command(address, length, force, physical, access);
-	}
-	
-	return false;
-}
-
-HANDLER(w_handler) {
-	size_t width    = OPT_GET_WIDTH_OR(0, "", "width", sizeof(kword_t));
-	bool force      = OPT_PRESENT(1, "f");
-	bool physical   = OPT_PRESENT(2, "p");
-	size_t access   = OPT_GET_WIDTH_OR(3, "x", "access", 0);
-	kaddr_t address = ARG_GET_ADDRESS(4, "address");
-	kword_t value   = ARG_GET_UINT(5, "value");
-	
-	bool checkSafe = safeacess(address);
-	if(checkSafe){
-		return w_command(address, value, force, physical, width, access);
-	}
-	
-	return false;
-}
-
-HANDLER(wd_handler) {
-	bool force          = OPT_PRESENT(0, "f");
-	bool physical       = OPT_PRESENT(1, "p");
-	size_t access       = OPT_GET_WIDTH_OR(2, "x", "access", 0);
-	kaddr_t address     = ARG_GET_ADDRESS(3, "address");
-	struct argdata data = ARG_GET_DATA(4, "data");
-
-	bool checkSafe = safeacess(address);
-	if(checkSafe){
-		return wd_command(address, data.data, data.length, force, physical, access);
-	}
-	
-	return false;
-}
-
-HANDLER(ws_handler) {
-	bool force         = OPT_PRESENT(0, "f");
-	bool physical      = OPT_PRESENT(1, "p");
-	size_t access      = OPT_GET_WIDTH_OR(2, "x", "access", 0);
-	kaddr_t address    = ARG_GET_ADDRESS(3, "address");
-	const char *string = ARG_GET_STRING(4, "string");
-	
-	bool checkSafe = safeacess(address);
-	if(checkSafe){
-		return ws_command(address, string, force, physical, access);
-	}
-	
-	return false;
-}
-
-
-bool
-default_action(void) {
 	return true;
 }
 
@@ -464,7 +353,135 @@ ws_command(kaddr_t address, const char *string, bool force, bool physical, size_
 	return wd_command(address, string, length, force, physical, access);
 }
 
+bool
+zs_command(kaddr_t address) {
+	return zone_space(address);
+}
+
 // Command Code 
+
+// Handler Code
+
+HANDLER(i_handler) {
+	return i_command();
+}
+
+HANDLER(r_handler) {	
+	size_t width    = OPT_GET_WIDTH_OR(0, "", "width", sizeof(kword_t));
+	bool dump       = OPT_PRESENT(1, "d");
+	bool force      = OPT_PRESENT(2, "f");
+	bool physical   = OPT_PRESENT(3, "p");
+	size_t access   = OPT_GET_WIDTH_OR(4, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(5, "address");
+	size_t length;
+	if (ARG_PRESENT(6, "length")) {
+		length = ARG_GET_UINT(6, "length");
+	} else if (dump) {
+		length = 256;
+	} else {
+		length = width;
+	}
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return r_command(address, length, force, physical, width, access, dump);
+	}
+
+	return false;
+}
+
+HANDLER(rb_handler) {
+	bool force      = OPT_PRESENT(0, "f");
+	bool physical   = OPT_PRESENT(1, "p");
+	size_t access   = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(3, "address");
+	size_t length   = ARG_GET_UINT(4, "length");
+
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return rb_command(address, length, force, physical, access);
+	}
+	
+	return false;
+	
+}
+
+HANDLER(rs_handler) {
+	bool force      = OPT_PRESENT(0, "f");
+	bool physical   = OPT_PRESENT(1, "p");
+	size_t access   = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(3, "address");
+	size_t length   = ARG_GET_UINT_OR(4, "length", -1);
+	
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return rs_command(address, length, force, physical, access);
+	}
+	
+	return false;
+}
+
+HANDLER(w_handler) {
+	size_t width    = OPT_GET_WIDTH_OR(0, "", "width", sizeof(kword_t));
+	bool force      = OPT_PRESENT(1, "f");
+	bool physical   = OPT_PRESENT(2, "p");
+	size_t access   = OPT_GET_WIDTH_OR(3, "x", "access", 0);
+	kaddr_t address = ARG_GET_ADDRESS(4, "address");
+	kword_t value   = ARG_GET_UINT(5, "value");
+	
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return w_command(address, value, force, physical, width, access);
+	}
+	
+	return false;
+}
+
+HANDLER(wd_handler) {
+	bool force          = OPT_PRESENT(0, "f");
+	bool physical       = OPT_PRESENT(1, "p");
+	size_t access       = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address     = ARG_GET_ADDRESS(3, "address");
+	struct argdata data = ARG_GET_DATA(4, "data");
+
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return wd_command(address, data.data, data.length, force, physical, access);
+	}
+	
+	return false;
+}
+
+HANDLER(ws_handler) {
+	bool force         = OPT_PRESENT(0, "f");
+	bool physical      = OPT_PRESENT(1, "p");
+	size_t access      = OPT_GET_WIDTH_OR(2, "x", "access", 0);
+	kaddr_t address    = ARG_GET_ADDRESS(3, "address");
+	const char *string = ARG_GET_STRING(4, "string");
+	
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return ws_command(address, string, force, physical, access);
+	}
+	
+	return false;
+}
+
+HANDLER(zs_handler) {	
+	kaddr_t address = ARG_GET_ADDRESS(0, "address");
+
+	bool checkSafe = safeacess(address);
+	if(checkSafe){
+		return zs_command(address);
+	}
+	return false;
+}
+
+bool
+default_action(void) {
+	return true;
+}
+
+// Handle End
 
 // Command Definition
 
@@ -545,7 +562,14 @@ static struct command commands[] = {
 			{ ARGUMENT, "address", ARG_ADDRESS, "The address to write"    },
 			{ ARGUMENT, "string",  ARG_STRING,  "The string to write"     },
 		},
-	}, 
+	}, {
+		"zs", NULL, zs_handler,
+		"zone Print",
+		"zone Print",
+		ARGSPEC(1){
+			{ ARGUMENT, "address", ARG_ADDRESS, "The address to read"     },
+		},
+	},
 };
 
 struct cli cli = {

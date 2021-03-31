@@ -46,6 +46,7 @@ SOURCES = kernel/kernel_memory.c \
 	  memctl_overwrite/libmemctl/format.c \
   	  memctl_overwrite/memctl_modify/memCtlCommand.c \
 	  memctl_overwrite/memctl_modify/memCtlRead.c \
+	  memctl_overwrite/memctl_modify/memCtlZoneCommand.c \
   	  main.c
  
 

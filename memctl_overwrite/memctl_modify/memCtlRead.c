@@ -16,7 +16,6 @@ typedef void (*fn_t)(void);
 
 kaddr_t read_kernel(kaddr_t address, size_t *size, void *data, memflags flags,
                  size_t access) {
-
   uint64_t value;
   bool ok = kernel_read(address, &value, sizeof(value));
   if (!ok) {

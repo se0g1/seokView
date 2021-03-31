@@ -31,8 +31,7 @@ void error_usage(const char *command, const char *option, const char *format, ..
 
 #define ERROR_COMMAND(s, fmt, ...)						\
 	({ struct state *s0 = (s);						\
-	   error_usage(s0->command->command, NULL, fmt, ##__VA_ARGS__); })
-
+	   error_usage(s0->command->command, NULL, fmt, ##__VA_ARGS__); });
 #define ERROR_OPTION(s, fmt, ...)						\
 	({ struct state *s0 = (s);						\
 	   const char *opt = (s0->option == NULL ? NULL : s0->option->option);	\

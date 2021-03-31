@@ -160,6 +160,11 @@ parameters__iphone8_4__17G68() {
 	rorgn_end                   = kernel_read64(SLIDE(0xFFFFFFF007096420));
 	cpu_ttep                    = kernel_read64(SLIDE(0xFFFFFFF007095D90));
 	kernel_pmap                 = kernel_read64(SLIDE(0xFFFFFFF007095D70));
+	zone_map_min_addr           = kernel_read64(SLIDE(0xFFFFFFF0076EADB0));
+	zone_map_max_addr           = kernel_read64(SLIDE(0xFFFFFFF0076EADB8));
+	zone_metadata_region_min    = kernel_read64(SLIDE(0xFFFFFFF0076EADC0));
+	zone_metadata_region_max    = kernel_read64(SLIDE(0xFFFFFFF0076EADC8));
+	ADDRESS(zone_base)			= SLIDE(0xFFFFFFF0076EADD8);
 	ADDRESS(pmap_find_phys)     = SLIDE(0xFFFFFFF0071E6240);
 	ADDRESS(kvtophys)			= SLIDE(0xFFFFFFF0071E2648);
 	ADDRESS(ml_phys_read_data)  = SLIDE(0xFFFFFFF0071F0960);

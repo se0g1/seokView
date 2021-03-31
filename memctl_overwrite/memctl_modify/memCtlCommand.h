@@ -16,6 +16,7 @@ bool f_command(kaddr_t start, kaddr_t end, kword_t value, size_t width, bool phy
 		size_t access, size_t alignment);
 
 bool default_action(void);
+bool safeacess(kaddr_t address);
 
 struct state {
 	// The current argv string. If part of the current argument string has already been
