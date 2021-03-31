@@ -18,6 +18,7 @@ bool f_command(kaddr_t start, kaddr_t end, kword_t value, size_t width, bool phy
 bool default_action(void);
 bool safeacess(kaddr_t address);
 
+
 struct state {
 	// The current argv string. If part of the current argument string has already been
 	// processed, arg might point into the middle of the argv string. NULL when no more

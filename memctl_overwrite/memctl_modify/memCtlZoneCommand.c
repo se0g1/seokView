@@ -3,7 +3,6 @@
 #include "../ktrr/ktrr_bypass_parameters.h"
 #include "../kernel/kernel_memory.h"
 
-
 bool zone_space(kaddr_t address)
 {
 	// printf("zone_map_min_address => 0x%llx\n",zone_map_min_addr);
@@ -28,7 +27,7 @@ bool zone_space(kaddr_t address)
 			// zone index & findzone 
 			uint64_t value = 0;
 			uint64_t zindex = page_meta+0x14;
-			printf("[-] zindex address => 0x%llx\n",zindex);
+			//printf("[-] zindex address => 0x%llx\n",zindex);
 			checkSafe = safeacess(zindex);
 			if(checkSafe){
 				zindex = kernel_read16(zindex);
@@ -40,7 +39,12 @@ bool zone_space(kaddr_t address)
 
 			// zone name
 			uint64_t zonename = findzone+0x120;
+			char zonenamearray[30];
+			char a[2];
+			int cnt = 0;
 			checkSafe = safeacess(zonename);
+			printf("[+] zonename address => 0x%llx\n",zonename);
+			
 			if(checkSafe){
 				bool ok = kernel_read(zonename, &value, sizeof(value));
 				if (!ok) {
@@ -51,7 +55,33 @@ bool zone_space(kaddr_t address)
 				}
 			}
 			zonename = value;
+			checkSafe = safeacess(zonename);
+			if(checkSafe){
+				while(true)
+				{
+					uint8_t printzonename = kernel_read8(zonename);
+					if(printzonename == 0x00)
+					{
+						goto jump;
+					}
+					if(printzonename != 0x00)
+					{
+						printf("printzonename => %c\n",printzonename);
+						sprintf(a,"%c",printzonename);
+						zonenamearray[cnt] = *a;
+						zonename++;
+						cnt++;
+					}
+				}
 
+			}
+			else if(!checkSafe) {
+				printf("[+] zonename Error \n");
+			}
+
+			jump:
+			printf("%s\n",zonenamearray);
+			
 			// zone element size
 			uint64_t elementsize = findzone+0xf0;
 			checkSafe = safeacess(elementsize);
@@ -65,8 +95,9 @@ bool zone_space(kaddr_t address)
 				}
 			}
 			elementsize = value;
+
 			printf("Zone => 0x%llx\n", findzone);
-			printf("zoneName => 0x%llx\n", zonename);
+			//printf("zoneName => %s\n", zonenamearray);
 			printf("Zone_metaData => 0x%llx\n",page_meta);
 			printf("ElementSize => 0x%llx\n",elementsize);
 		}

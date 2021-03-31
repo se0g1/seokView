@@ -564,7 +564,7 @@ static struct command commands[] = {
 		},
 	}, {
 		"zs", NULL, zs_handler,
-		"zone Print",
+		"zone Space Print",
 		"zone Print",
 		ARGSPEC(1){
 			{ ARGUMENT, "address", ARG_ADDRESS, "The address to read"     },
