@@ -46,6 +46,7 @@ rs <address> [length]  Read a string from memory
 w <address> <value>    Write an integer to memory
 wd <address> <data>    Write arbitrary data to memory
 ws <address> <string>  Write a string to memory
+zs <address>           zone Space Print
 ```
 
 1. System Information
@@ -78,6 +79,15 @@ fffffff00b734000:  0100000cfeedfacf 00000ed800000016
 
 ```
 
+4. Kernel Zone Space 
+```
+se0g1> zs 0xffffffe002f82808
+[ zoneName ]=> kalloc.768
+ ->  Zone => 0xfffffff01870cbd8
+ ->  Zone_metaData => 0xffffffe0001c92b0
+ ->  ElementSize => 0x300
+```
+
 ---
 [ 추후수정 ]  
 1. 문제점 : kernel_symbols 폴더(symbole 파일)와 바이너리를 함께 업로드  
@@ -86,4 +96,4 @@ fffffff00b734000:  0100000cfeedfacf 00000ed800000016
 필요한 코드를 추가하는 식으로 진행해야하지만, write 코드 추가 이후 파일 붙어넣기로 인해 코드 중복 해결이 필요, ( memctl / ktrw 비교하면서 수정 -> memctl 기능들을 참고가 대부분  )  
 3. 문제점 : read / write 세부 기능 추가 필요 -> rd 기능이나 read length 추가 / write 입력 부분 수정
 4. read Length 길이 만큼 출력( 현재 코드 수정 필요 ) / 8byte, 4byte, byte 기능 추가  
-5. zone space 출력 정확한 주소가 출력되지 않음, 확인 필요 -> 기능만 구현된 상태
+5. zone space 출력 정확한 주소가 출력되지 않음, 확인 필요 -> 기능만 구현된 상
